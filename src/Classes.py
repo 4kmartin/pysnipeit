@@ -3,6 +3,38 @@ from abc import ABC, abstractmethod
 from typing import Optional, List, Any
 from returns.result import Result, Success, Failure
 
+
+class SnipeItDate:
+    def __init__ (self, year:int, month:int, day:int) -> Result[None,str]:
+        if self.validate_date (year,month,day):
+            self.day = day
+            self.month = month
+            self.year = year
+            return Success(None)
+        else:
+            return Failure(f"{year}-{month}-{day} is not a valid date")
+        
+    def _valid_date (self, year:int, month:int, day:int ) -> bool:
+        return self._valid_day_number(year,month,day) and month <= 12
+
+    def _validate_day_number (self,year: int, month:int, day:int) -> bool:
+        if month == 2:
+            return self._leap_year(year,day)
+        elif month in (4,6,9,11):
+            return day < 31
+        else:
+            return day <= 31
+        
+    def _leap_year (year:int, day:int) -> bool:
+        if year % 4 > 0:
+            return day < 29
+        else:
+            return day <= 29
+                
+    def __str__ (self) -> str:
+        return f"{self.year}-{self.month}-{self.day}"
+
+
 class SnipeIt (ABC):
 
     @abstractmethod
@@ -120,6 +152,10 @@ class SnipeItReportsclass (SnipeIt):
     pass
 
 
+class SnipeItLicense (SnipeIt):
+    pass
+
+
 class SnipeItConnection:
     def __init__(self) -> None:
         self.headers = {}
@@ -162,16 +198,20 @@ class SnipeItConnection:
         url= self._api_url(api_endpoint)
         return delete(url,headers=self.headers)
 
-    def _put (self, api_endpoint, payload:dict[Any]) -> Response:
+    def _put (self, api_endpoint:str, payload:dict[Any]) -> Response:
         url = self._api_url(api_endpoint)
         return put(url, headers=headers, json=payload)
-        
 
+    def _post (self, api_endpoint:str, payload:dict[Any]) -> Response:
+        url = self._api_url(api_endpoint)
+        return post(url,headers=headers,json=payload)
+        
+    #Start Asset API Functions
     def get_all_assets (self) -> List[SnipeItAsset]:
         assets:List[SnipeItAsset] = []
-        rows:List[dict[str,any]] = []
+        rows:List[dict[str,Any]] = []
         # get total number of assets:
-        number_of_assets:int = get(f"{self.url}/hardware?limit=1").json()["total"]
+        number_of_assets:int = self._get("/hardware?limit=1").json()["total"]
         if number_of_assets > 50:
             offset = 0
             limit = 50
@@ -262,4 +302,179 @@ class SnipeItConnection:
                 return Success(None)
         else:
             return Failure(f"status code: {response.status_code}")
+            
+    def checkin_asset (
+        self,
+        id:int,
+        status_id:int,
+        name:Optional[str]=None,
+        note:Optional[str]=None,
+        location_id:Optional[str]=None
+    ) -> Result[None,str]:
+        url = f"/hardware/{id}/checkin"
+        payload = {
+            "status_id":status_id,
+        }
+
+        if name:
+            payload["name"] = name
+        if note:
+            payload["note"] = note
+        if location_id:
+            payload["location_id"] = location_id
+
+        response = self._post(url,payload)
+        if response.status_code == 200:
+            if "status" in response.json():
+                return Failure(response.text)
+            else:
+                return Success(None)
+        else:
+            return Failure(f"status code: {response.status_code}")
+
+    def audit_asset (
+        self,
+        asset_tag:str,
+        location_id:Optional[int]=None,
+        next_audit_date: Optional[SnipeItDate]=None
+    ) -> Result[None, str]:
+        url = "/hardware/audit"
+        payload = {
+            "asset_tag":asset_tag
+        }
+        if location_id:
+            payload["location_id"] = location_id
+        if next_audit_date:
+            payload["next_audit_date"] = str(next_audit_date)
+        response = self._post(url,payload)
+        if response.status_code == 200:
+            if "status" in response.json():
+                return Failure(response.text)
+            else:
+                return Success(None)
+        else:
+            return Failure(f"status code:{response.status_code}")
+
+    def restore_asset (self, id:int) -> None:
+        url = f"/hardware/{id}/restore"
+        self._post(url,None)
+
+    def list_audit_due_assets (self) -> List[SnipeItAsset]:
+        url = "/hardware/audit/due"
+        audit_due:List[SnipeItAsset] = []
+        request = self._get(url)
+        for json_asset in request.json()["rows"]:
+            audit_due.append(SnipeItAsset().from_json(json_asset))
+        return audit_due
+
+    def list_overdue_assets (self) -> List[SnipeItAsset]:
+        url = "/hardware/audit/overdue"
+        overdue:List[SnipeItAsset] = []
+        request = self._get(url)
+        for json_asset in request.json()["rows"]:
+            overdue.append(SnipeItAsset().from_json(json_asset))
+        return overdue
+
+    def list_asset_licences (self, id:int) -> Result[List[SnipeItLicense],str]:
+        url = f"/hardware/{id}/licenses"
+        request = self._get(url)
+        if requst.status_code == 200:
+            if "status" in request.json():
+                return Failure(request.text)
+            else:
+                licenses:List[SnipeItAssets] =[]
+                for row in request.json()["rows"]:
+                    licenses.append(SnipItLicense().from_json(row))
+                return Success(licences)
+        else:
+            return Failure(f"Status Code: {request.status_code}")
+
+    #End Asset API Functions
+    #Start User API Functions
+    def get_users (self, 
+        fuzzy_search:Optional[str]=None,
+        first_name:Optional[str]=None,
+        last_name:Optional[str]=None,
+        user_name:Optional[str]=None,
+        email:Optional[str]=None,
+        employee_number:Optional[str]=None,
+        state:Optional[str]=None,
+        zip:Optional[str]=None,
+        country:Optional[str]=None,
+        group_id:Optional[int]=None,
+        department_id:Optional[int]=None,
+        company_id:Optional[int]=None,
+        location_id:Optional[int]=None,
+        deleted:bool=False, #set to True if you want *ONLY* deleted users
+        all:bool=False, #ser to True if you want *BOTH* deleted and active users
+        assets_count:Optional[int]=None,
+        license_count:Optional[int]=None,
+        accessories_count:Optional[int]=None,
+        consumables_count:Optional[int]=None,
+        remote:Optional[bool]=None, #set to filter against whether user is remote (WFH) or not
+        vip:Optional[bool]=None,
+        start_date:Optional[SnipeItDate]=None,
+        end_date:Optional[SnipeItDate]=None
+    ) -> List[SnipeItUser]:
+        query = ["?"]
+        url = "/users"
+        number_of_users:int = self._get(f"{url}?limit=1").json()["total"]
+        users:List[SnipeItUser] = []
+        if fuzzy_search:
+            query.append(f"search={fuzzy_search}")
+        if first_name:
+            query.append(f"first_name={first_name}")
+        if last_name:
+            query.append(f"last_name={last_name}")
+        if user_name:
+            query.append(f"user_name={user_name}")
+        if email:
+            query.append(f"email={email}")
+        if employee_number:
+            query.append(f"employee_num={employee_number})
+        if state:
+            qery.append(f"state={state}")
+        if zip:
+            query.append(f"zip={zip}")
+        if country:
+            query.append(f"country={country}")
+        if group_id:
+            query.append(f"group_id={group_id}")
+        if department_id:
+            query.append(f"department_id={department_id}")
+        if company_id:
+            query.append(f"company_id={company_id}")
+        if location_id:
+            query.append(f"location_id={location_id})
+        if deleted:
+            query.append("deleted=true")
+        if all:
+            query.append("all=true")
+        if assets_count:
+            query.append(f"assets_count={assets_count}")
+        if license_count:
+            query.append(f"license_count={license_count}")
+        if accesories_count:
+            query.append(f"accessories_count={accessories_count}")
+        if consumables_count:
+            query.append(f"consumables_count={consumables_count}")
+        if remote != None:
+            query.append(f"remote={str(remote).lower()}")
+        if vip != None:
+            query.append(f"vip={str(vip).lower()}")
+        if start_date:
+            query.append(f"start_date={str(start_date)}")
+        if end_date:
+            query.append(f"end_date={str(end_date)}")
+        url += '&'.join(query) if len(query) > 1 else ''
+        if number_of_users > 50:
+            pass
+        else:
+            request = self._get(url)
+            if request.status_code == 200:
+                for row in request.json()["rows"]:
+                    users.append(SnipeItUser().from_json(row))
+                return Success(users)
+            else:
+                return Failure(request.status_code)
             
