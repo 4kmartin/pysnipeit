@@ -160,3 +160,12 @@ class SnipeItConnection:
         url = self._api_url(api_endpoint)
         return post(url,headers=self.headers,json=payload)
 
+
+def return_none_from_response(response:Response) -> Result[None,str]:
+    if response.status_code == 200:
+        if "status" in response.json():
+            return Failure(response.text)
+        else:
+            return Success(None)
+    else:
+        return Failure(f"status code: {response.status_code}")
