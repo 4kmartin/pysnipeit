@@ -1,48 +1,49 @@
-from requests import get, Response, delete, put
+from requests import get, Response, delete, put, post
 from abc import ABC, abstractmethod
-from typing import Optional, List, Any
+from typing import Any, Self
 from returns.result import Result, Success, Failure
 
 
 class SnipeItDate:
     def __init__ (self, year:int, month:int, day:int) -> Result[None,str]:
-        if self.validate_date (year,month,day):
+        if self._valid_date(year, month, day):
             self.day = day
             self.month = month
             self.year = year
             return Success(None)
         else:
             return Failure(f"{year}-{month}-{day} is not a valid date")
-        
+
     def _valid_date (self, year:int, month:int, day:int ) -> bool:
         return self._valid_day_number(year,month,day) and month <= 12
 
-    def _validate_day_number (self,year: int, month:int, day:int) -> bool:
+    def _valid_day_number (self,year: int, month:int, day:int) -> bool:
         if month == 2:
             return self._leap_year(year,day)
         elif month in (4,6,9,11):
             return day < 31
         else:
             return day <= 31
-        
-    def _leap_year (year:int, day:int) -> bool:
+
+    def _leap_year (self, year:int, day:int) -> bool:
         if year % 4 > 0:
             return day < 29
         else:
             return day <= 29
-                
+
     def __str__ (self) -> str:
         return f"{self.year}-{self.month}-{self.day}"
 
 
 class SnipeIt (ABC):
 
+    @classmethod
     @abstractmethod
-    def from_json(self,json_data:dict) -> None:
+    def from_json(cls, json_data: dict) -> Self:
         pass
 
     @abstractmethod
-    def into_json (self) -> dict[Any]:
+    def into_json(self) -> dict:
         pass
 
 
@@ -70,7 +71,7 @@ class SnipeItLocation (SnipeIt):
     pass
 
 
-class SnipeitStatusLabel (SnipeIt):
+class SnipeItStatusLabel (SnipeIt):
     pass
 
 
@@ -102,12 +103,11 @@ class SnipeItSettings (SnipeIt):
     pass
 
 
-class SnipeItReportsclass (SnipeIt):
+class SnipeItReports (SnipeIt):
     pass
 
 
-class SnipeItLicense (SnipeIt):
-    pass
+
 
 
 class SnipeItConnection:
@@ -115,7 +115,7 @@ class SnipeItConnection:
         self.headers = {}
         self.url = ""
 
-    def connect (snipe_it_url:str, personal_access_token:str, validate:bool=False) -> None:
+    def connect (self, snipe_it_url:str, personal_access_token:str, validate:bool=False) -> None:
         self.headers = {
             "Accept":"application/json",
             "Content-type":"application/json",
@@ -129,7 +129,7 @@ class SnipeItConnection:
             if test == 200:
                 print("connection successful")
             elif test == 401:
-                print("An Error has Occured! Unauthenticated")
+                print("An Error has Occurred! Unauthenticated")
                 quit()
             else:
                 print("Connection failed for unknown reasons.\nAborting.")
@@ -139,25 +139,24 @@ class SnipeItConnection:
         if api_endpoint[0] != '/':
             api_endpoint = f"/{api_endpoint}"
         return f"{self.url}{api_endpoint}"
-    
-    def _get (self, api_endpoint:str) -> Response:
+
+    def get (self, api_endpoint:str) -> Response:
         url = self._api_url(api_endpoint)
         return get(url, headers=self.headers)
 
-    def _paginated_request (self, api_endpoit:str, limit:int, offset:int) -> Response:
+    def paginated_request (self, api_endpoint:str, limit:int, offset:int) -> Response:
         url = f"{api_endpoint}?limit={limit}&offset={offset}&sort=id&order=asc"
-        return self._get(url)
+        return self.get(url)
 
-    def _delete (self, api_enpoint:str) -> Response:
-        url= self._api_url(api_endpoint)
+    def delete (self, api_endpoint:str) -> Response:
+        url = self._api_url(api_endpoint)
         return delete(url,headers=self.headers)
 
-    def _put (self, api_endpoint:str, payload:dict[Any]) -> Response:
+    def put (self, api_endpoint:str, payload:dict[Any]) -> Response:
         url = self._api_url(api_endpoint)
-        return put(url, headers=headers, json=payload)
+        return put(url, headers=self.headers, json=payload)
 
-    def _post (self, api_endpoint:str, payload:dict[Any]) -> Response:
+    def post (self, api_endpoint:str, payload:dict[Any]) -> Response:
         url = self._api_url(api_endpoint)
-        return post(url,headers=headers,json=payload)
-        
-           
+        return post(url,headers=self.headers,json=payload)
+
