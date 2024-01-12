@@ -277,4 +277,13 @@ def list_overdue_assets(connection: SnipeItConnection) -> List[SnipeItAsset]:
         overdue.append(SnipeItAsset.from_json(json_asset))
     return overdue
 
-# End Asset API Functions
+def get_user_assets(connection:SnipeItConnection, user_id:int) -> Result[List[SnipeItAsset],str]:
+    url = f"/users/{user_id}/assets"
+    response = connection.get(url)
+    assets = []
+    if response.status_code == 200:
+        for json in response.json()["rows"]:
+            assets.append(SnipeItAsset.from_json(json))
+        return Success(assets)
+    else:
+        return Failure(f"status code: {response.status_code}")
