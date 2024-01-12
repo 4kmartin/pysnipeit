@@ -23,14 +23,19 @@ def list_asset_licences(connection: SnipeItConnection, asset_id: int) -> Result[
     return _license_response(request)
 
 
-def _license_response(request: Response) -> Result[List[SnipeItLicense], str]:
-    if request.status_code == 200:
-        if "status" in request.json():
-            return Failure(request.text)
+def _license_response(response: Response) -> Result[List[SnipeItLicense], str]:
+    if response.status_code == 200:
+        if "status" in response.json():
+            return Failure(response.text)
         else:
             licenses: List[SnipeItLicense] = []
-            for row in request.json()["rows"]:
+            for row in response.json()["rows"]:
                 licenses.append(SnipeItLicense().from_json(row))
             return Success(licenses)
     else:
-        return Failure(f"Status Code: {request.status_code}")
+        return Failure(f"Status Code: {response.status_code}")
+
+def get_user_licenses (connection:SnipeItConnection, user_id:int) -> Result[List[SnipeItLicense], str]:
+    url = f"/users/{user_id}/licenses"
+    request = connection.get(url)
+    return _license_response(request)
