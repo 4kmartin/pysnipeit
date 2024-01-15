@@ -1,15 +1,6 @@
-from Classes import SnipeIt, SnipeItConnection, SnipeItDate, return_none_from_response
-from typing import Optional, List, Self
+from src.Classes import SnipeItUser, SnipeItConnection, SnipeItDate, return_none_from_response
+from typing import Optional, List
 from returns.result import Result, Success, Failure
-
-
-class SnipeItUser(SnipeIt):
-    def into_json(self) -> dict:
-        pass
-
-    @classmethod
-    def from_json(cls, json_data: dict) -> Self:
-        pass
 
 
 # Start User API Functions
@@ -37,10 +28,10 @@ def get_users(connection: SnipeItConnection,
               vip: Optional[bool] = None,
               start_date: Optional[SnipeItDate] = None,
               end_date: Optional[SnipeItDate] = None
-              ) -> Result[List[SnipeItUser]]:
+              ) -> Result[List[SnipeItUser], str]:
     query = ["?"]
     url = "/users"
-    test = connection.get(f"{url}?limit=1")   
+    test = connection.get(f"{url}?limit=1")
     if test.status_code != 200:
         return Failure(f"status code: {test.status_code}")
     number_of_users: int = test.json()["total"]
@@ -93,50 +84,51 @@ def get_users(connection: SnipeItConnection,
         query.append(f"end_date={str(end_date)}")
     url += '&'.join(query) if len(query) > 1 else ''
     if number_of_users > 50:
-        offset = 0 
+        offset = 0
         limit = 50
         rows = []
         while offset < number_of_users:
-            rows += connection.paginated_request(url,limit,offset).json()["rows"]
-            offset += limit    
+            rows += connection.paginated_request(url, limit, offset).json()["rows"]
+            offset += limit
     else:
         rows = connection.get(url).json()["rows"]
-    for row in request.json()["rows"]:
-        users.append(SnipeItUser().from_json(row))
+    for row in rows:
+        users.append(SnipeItUser.from_json(row))
     return Success(users)
 
-def create_new_user (
-    connection:SnipeItConnection,
-    first_name:str,
-    last_name:Optional[str]=None,
-    username:str,
-    password:str,
-    confirm_password:str,
-    email:Optional[str]=None,
-    permissions:Optional[str]=None,
-    activated:bool=False,
-    phone:Optional[str]=None,
-    jobtitle:Optional[str]=None,
-    manager_id:Optional[int]=None,
-    employee_number:Optional[str]=None,
-    notes:Optional[str]=None,
-    company_id:Optional[int]=None,
-    two_factor_enrolled:bool=False,
-    two_factor_optin:bool=False,
-    department_id:Optional[int]=None,
-    location_id:Optional[int]=None,
-    remote:bool=False,
-    groups:Optional[List[int]]=None,
-    vip:bool=False,
-    start_date:Optional[SnipeItDate]=None,
-    end_date:Optional[SnipeItDate]=None
-) -> Result[None,str]:
-    url = /users
+
+def create_new_user(
+        connection: SnipeItConnection,
+        first_name: str,
+        username: str,
+        password: str,
+        confirm_password: str,
+        last_name: Optional[str] = None,
+        email: Optional[str] = None,
+        permissions: Optional[str] = None,
+        activated: bool = False,
+        phone: Optional[str] = None,
+        jobtitle: Optional[str] = None,
+        manager_id: Optional[int] = None,
+        employee_number: Optional[str] = None,
+        notes: Optional[str] = None,
+        company_id: Optional[int] = None,
+        two_factor_enrolled: bool = False,
+        two_factor_optin: bool = False,
+        department_id: Optional[int] = None,
+        location_id: Optional[int] = None,
+        remote: bool = False,
+        groups: Optional[List[int]] = None,
+        vip: bool = False,
+        start_date: Optional[SnipeItDate] = None,
+        end_date: Optional[SnipeItDate] = None
+) -> Result[SnipeItUser, str]:
+    url = "/users"
     payload = {
-        "first_name":first_name,
-        "username":username,
-        "password":password,
-        "password_confirmation":confirm_password,
+        "first_name": first_name,
+        "username": username,
+        "password": password,
+        "password_confirmation": confirm_password,
     }
 
     if last_name:
@@ -178,39 +170,44 @@ def create_new_user (
     if end_date:
         payload["end_date"] = str(end_date)
 
-    response = connection.post(url,payload)
+    response = connection.post(url, payload)
     if response.status_code == 200:
-        return Success(None)
+        return Success(SnipeItUser.from_json(response.json()["payload"]))
     else:
         return Failure(f"status code: {response.status_code}")
 
-def get_user_by_id(connection:SnipeItConnection, user_id:int) -> Result[SnipeItUser,str]:
+
+def get_user_by_id(connection: SnipeItConnection, user_id: int) -> Result[SnipeItUser, str]:
     url = f"/users/{user_id}"
     response = connection.get(url)
     if response.status_code == 200:
         return Success(SnipeItUser.from_json(response.json()))
     else:
         return Failure(f"status code: {response.status_code}")
-    
-def update_user_details(
-    connection:SnipeItConnection,
-    user_id:int
-    user:SnipeItUser
-) -> Result[None,str]:
-    url = f"/users/{user_id}"
-    connection.put(url, user.into_json())
 
-def delete_user(connection:SnipeItConnection, user_id:int) -> Result[None,str]:
+
+def update_user_details(
+        connection: SnipeItConnection,
+        user: SnipeItUser
+) -> Result[None, str]:
+    url = f"/users/{user.id}"
+    response = connection.put(url, user.into_json())
+    return return_none_from_response(response)
+
+
+def delete_user(connection: SnipeItConnection, user_id: int) -> Result[None, str]:
     url = f"/users/{user_id}"
     response = connection.delete(url)
     return return_none_from_response(response)
 
-def restore_user(connection:SnipeItConnection, user_id:int) -> Result[None,str]:
+
+def restore_user(connection: SnipeItConnection, user_id: int) -> Result[None, str]:
     url = f"/users/{user_id}/restore"
     response = connection.post(url, {})
     return return_none_from_response(response)
 
-def whoami (connection:SnipeItConnection) -> SnipeItUser:
+
+def whoami(connection: SnipeItConnection) -> SnipeItUser:
     url = "/users/me"
-    response = connection.get(api)
+    response = connection.get(url)
     return SnipeItUser.from_json(response.json())

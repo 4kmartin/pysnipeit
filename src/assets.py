@@ -1,96 +1,9 @@
-from Classes import SnipeIt, SnipeItConnection, SnipeItDate
-from typing import Optional, List, Any, Self
-from returns.result import Result, Success, Failure
+from typing import Optional, List, Any
+
 from requests import Response
+from returns.result import Result, Success, Failure
 
-
-class SnipeItAsset(SnipeIt):
-
-    def into_json(self) -> dict:
-        pass
-
-    def __init__(self,
-                 asset_id: int,
-                 name: str,
-                 asset_tag: str,
-                 serial: str,
-                 model: str,
-                 model_number: str,
-                 eol: SnipeItDate,
-                 status_label: str,
-                 category: str,
-                 manufacturer: str,
-                 supplier: str,
-                 notes: str,
-                 order_number: str,
-                 company: str,
-                 location: str,
-                 rtd_location: str,
-                 image: str,
-                 qr: str,
-                 alt_barcode: str,
-                 assigned_to: str,
-                 warranty_months: int,
-                 warranty_expires: SnipeItDate,
-                 created_at: SnipeItDate,
-                 updated_at: SnipeItDate,
-                 last_audit_date: SnipeItDate,
-                 next_audit_date: SnipeItDate,
-                 deleted_at: SnipeItDate,
-                 purchase_date: SnipeItDate,
-                 age: int,
-                 last_checkout: SnipeItDate,
-                 expected_checkin: SnipeItDate,
-                 purchase_cost: int,
-                 checkin_counter: int,
-                 checkout_counter: int,
-                 requests_counter: int,
-                 user_can_checkout: bool,
-                 custom_fields: dict[str, Any],
-                 available_actions: dict[str, bool],
-                 ) -> None:
-        self.id: int = asset_id
-        self.name = name
-        self.asset_tag = asset_tag
-        self.serial = serial
-        self.model = model
-        self.model_number = model_number
-        self.eol = eol
-        self.status_label = status_label
-        self.category = category
-        self.manufacturer = manufacturer
-        self.supplier = supplier
-        self.notes = notes
-        self.order_number = order_number
-        self.company = company
-        self.location = location
-        self.rtd_location = rtd_location
-        self.image = image
-        self.qr = qr
-        self.alt_barcode = alt_barcode
-        self.assigned_to = assigned_to
-        self.warranty_months = warranty_months
-        self.warranty_expires = warranty_expires
-        self.created_at = created_at
-        self.updated_at = updated_at
-        self.last_audit_date = last_audit_date
-        self.next_audit_date = next_audit_date
-        self.deleted_at = deleted_at
-        self.purchase_date = purchase_date
-        self.age = age
-        self.last_checkout = last_checkout
-        self.expected_checkin = expected_checkin
-        self.purchase_cost = purchase_cost
-        self.checkin_counter = checkin_counter
-        self.checkout_counter = checkout_counter
-        self.requests_counter = requests_counter
-        self.user_can_checkout = user_can_checkout
-        self.custom_fields = custom_fields
-        self.available_actions = available_actions
-
-    @classmethod
-    def from_json(cls, json_data: dict) -> Self:
-        return cls(**json_data)
+from src.Classes import SnipeItAsset, SnipeItConnection, SnipeItDate
 
 
 # Start Asset API Functions
@@ -277,7 +190,8 @@ def list_overdue_assets(connection: SnipeItConnection) -> List[SnipeItAsset]:
         overdue.append(SnipeItAsset.from_json(json_asset))
     return overdue
 
-def get_user_assets(connection:SnipeItConnection, user_id:int) -> Result[List[SnipeItAsset],str]:
+
+def get_user_assets(connection: SnipeItConnection, user_id: int) -> Result[List[SnipeItAsset], str]:
     url = f"/users/{user_id}/assets"
     response = connection.get(url)
     assets = []
