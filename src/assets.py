@@ -173,7 +173,7 @@ def restore_asset(connection: SnipeItConnection, asset_id: int) -> None:
     connection.post(url, payload)
 
 
-def list_audit_due_assets(connection: SnipeItConnection) -> List[SnipeItAsset]:
+def get_audit_due_assets(connection: SnipeItConnection) -> List[SnipeItAsset]:
     url = "/hardware/audit/due"
     audit_due: List[SnipeItAsset] = []
     request = connection.get(url)
@@ -182,7 +182,7 @@ def list_audit_due_assets(connection: SnipeItConnection) -> List[SnipeItAsset]:
     return audit_due
 
 
-def list_overdue_assets(connection: SnipeItConnection) -> List[SnipeItAsset]:
+def get_overdue_assets(connection: SnipeItConnection) -> List[SnipeItAsset]:
     url = "/hardware/audit/overdue"
     overdue: List[SnipeItAsset] = []
     request = connection.get(url)

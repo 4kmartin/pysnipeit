@@ -1,20 +1,7 @@
-from Classes import SnipeItConnection, SnipeIt
-from typing import List, Self
+from Classes import SnipeItConnection, SnipeItLicense
+from typing import List
 from returns.result import Result, Failure, Success
 from requests import Response
-
-
-class SnipeItLicense(SnipeIt):
-
-    def into_json(self) -> dict:
-        pass
-
-    @classmethod
-    def from_json(cls, json_data: dict) -> Self:
-        pass
-
-    def __init__(self) -> None:
-        pass
 
 
 def list_asset_licences(connection: SnipeItConnection, asset_id: int) -> Result[List[SnipeItLicense], str]:
@@ -35,7 +22,8 @@ def _license_response(response: Response) -> Result[List[SnipeItLicense], str]:
     else:
         return Failure(f"Status Code: {response.status_code}")
 
-def get_user_licenses (connection:SnipeItConnection, user_id:int) -> Result[List[SnipeItLicense], str]:
+
+def get_user_licenses(connection: SnipeItConnection, user_id: int) -> Result[List[SnipeItLicense], str]:
     url = f"/users/{user_id}/licenses"
     request = connection.get(url)
     return _license_response(request)

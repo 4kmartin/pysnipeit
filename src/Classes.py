@@ -49,6 +49,7 @@ class SnipeIt:
 
     @classmethod
     def from_json(cls, json_data: dict) -> Self:
+        # noinspection PyArgumentList
         return cls(**json.loads(json.dumps(json_data)))
 
     def into_json(self) -> dict:
@@ -289,6 +290,10 @@ class SnipeItReports(SnipeIt):
     pass
 
 
+class SnipeItLicense(SnipeIt):
+    pass
+
+
 class SnipeItConnection:
     def __init__(self) -> None:
         self.headers = {}
@@ -309,10 +314,10 @@ class SnipeItConnection:
                 print("connection successful")
             elif test == 401:
                 print("An Error has Occurred! Unauthenticated")
-                # quit()
+                quit()
             else:
                 print(f"Connection failed for unknown reasons.\nstatus code: {test}\nAborting.")
-                # quit()
+                quit()
 
     def _api_url(self, api_endpoint: str) -> str:
         if api_endpoint[0] != '/':

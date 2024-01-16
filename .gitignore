@@ -2,3 +2,4 @@ src/pysnipeit.egg-info
 dist
 .idea
 src/__pycache__
+pysnipeit.egg-info
