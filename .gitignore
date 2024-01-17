@@ -3,3 +3,4 @@ dist
 .idea
 src/__pycache__
 pysnipeit.egg-info
+build
