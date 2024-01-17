@@ -5,6 +5,7 @@ import string
 from subprocess import run
 from typing import List, Optional, Callable
 from pysnipeit import SnipeItConnection, SnipeItUser, get_users, create_new_user
+from dotenv import dotenv_values
 
 
 class AdUser:
@@ -92,8 +93,9 @@ def add_missing_users_to_snipe_it(missing_users: List[AdUser], connection: Snipe
 
 
 if __name__ == '__main__':
-    url = "<URL HERE>"
-    api = "<API TOKEN HERE>"
+    secrets = dotenv_values(".env")
+    url = secrets["SNIPEIT_URL"]
+    api = secrets["SNIPEIT_API_KEY"]
     conn = SnipeItConnection()
     conn.connect(url, api, True)
     add_missing_users_to_snipe_it(
