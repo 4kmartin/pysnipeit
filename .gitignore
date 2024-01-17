@@ -1,6 +1,7 @@
-src/pysnipeit.egg-info
+*/pysnipeit.egg-info
 dist
 .idea
-src/__pycache__
+*/__pycache__
 pysnipeit.egg-info
 build
+*/*/__pycache__

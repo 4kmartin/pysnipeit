@@ -3,7 +3,7 @@ from typing import Optional, List, Any
 from requests import Response
 from returns.result import Result, Success, Failure
 
-from src.Classes import SnipeItAsset, SnipeItConnection, SnipeItDate
+from .Classes import SnipeItAsset, SnipeItConnection, SnipeItDate
 
 
 # Start Asset API Functions

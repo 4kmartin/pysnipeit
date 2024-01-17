@@ -1,4 +1,4 @@
-from Classes import SnipeItConnection, SnipeItLicense
+from .Classes import SnipeItConnection, SnipeItLicense
 from typing import List
 from returns.result import Result, Failure, Success
 from requests import Response

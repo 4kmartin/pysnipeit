@@ -1,4 +1,4 @@
-from src.Classes import SnipeItUser, SnipeItConnection, SnipeItDate, return_none_from_response
+from .Classes import SnipeItUser, SnipeItConnection, SnipeItDate, return_none_from_response
 from typing import Optional, List
 from returns.result import Result, Success, Failure
 
