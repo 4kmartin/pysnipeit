@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import random
+import string
 from subprocess import run
 from typing import List, Optional, Callable
-from pysnipeit import SnipeItConnection, SnipeItUser, get_users
+from pysnipeit import SnipeItConnection, SnipeItUser, get_users, create_new_user
 
 
 class AdUser:
@@ -40,27 +42,25 @@ class AdUser:
         self.zip_code = postalcode
 
     @classmethod
-    def from_str(cls, string: str) -> AdUser:
-        splits = list(map(lambda x: x.strip(), map(lambda x: x.split(":"), string.split("\n"))))
+    def from_str(cls, string_values: str) -> AdUser:
+        splits = list(map(lambda x: x.strip(), map(lambda x: x.split(":"), string_values.split("\n"))))
         keys = splits[::2]
         values = splits[1::2]
         properties = {keys[i]: values[i] for i in range(len(keys))}
         return cls(**properties)
 
-    def to_snipe_it_user(self) -> SnipeItUser:
-        pass
-
 
 def get_ad_users(filter_function: Callable[[AdUser], bool] = lambda x: True) -> List[AdUser]:
     """
         Produces a List of AdUsers. The filter function allows you to filter out unwanted users.
-        for example if uou only want users where the username is first initial followed by lastname you might define this function:
+        for example if uou only want users where the username is first initial followed by lastname you might define
+        this function:
 
         def filter_user_name (user:AdUser) -> bool:
             return user.user_name == f"{user.first_name[0]}{user.last_name}"
     
     """
-    cmd = "get-aduser -filter * -properties Manager,mail, city, country, state, streetaddress, telephonenumber, title, office, postalcode, department | select name, givenname, surname, samaccountname, enabled, mail, title, department, @{l=\"manager\";e={$_.manager.split(',')[0].split('=')[1]}}, office, streetaddress, city, state, country, postalcode"
+    cmd = "get-aduser -filter * -properties * | select name, givenname, surname, samaccountname, enabled, mail, title, department, @{l=\"manager\";e={$_.manager.split(',')[0].split('=')[1]}}, office, streetaddress, city, state, country, postalcode"
     output = run(["powershell", "-command", cmd], capture_output=True).stdout.decode()
     users = []
     for user_properties in output.replace('\r', '').split('\n\n'):
@@ -69,11 +69,26 @@ def get_ad_users(filter_function: Callable[[AdUser], bool] = lambda x: True) -> 
 
 
 def get_users_not_in_snipe_it(ad_users: List[AdUser], snipeit_users: List[SnipeItUser]) -> List[AdUser]:
-    pass
+    snipeit = [user.user_name for user in snipeit_users]
+    return [user for user in ad_users if user.name not in snipeit]
 
 
-def add_missing_users_to_snipe_it(missing_users: List[AdUser]) -> None:
-    pass
+def add_missing_users_to_snipe_it(missing_users: List[AdUser], connection: SnipeItConnection) -> None:
+    arbitrary_password = ''.join(random.choices(string.ascii_uppercase + string.digits, k=14))
+    for user in missing_users:
+        manager = get_users(connection, fuzzy_search=user.manager).id
+        create_new_user(
+            connection,
+            user.first_name,
+            user.user_name,
+            arbitrary_password,
+            arbitrary_password,
+            last_name=user.last_name,
+            jobtitle=user.job_title,
+            manager_id=manager,
+            email=user.email_address,
+            department=user.department
+        )
 
 
 if __name__ == '__main__':
@@ -85,5 +100,6 @@ if __name__ == '__main__':
         get_users_not_in_snipe_it(
             get_ad_users(),
             get_users(conn)
-        )
+        ),
+        conn
     )
