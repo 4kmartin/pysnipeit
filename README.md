@@ -22,6 +22,15 @@ pySnipeIt is a wrapper for [Snipe-It](https://snipeitapp.com/)'s REST API. It ai
 - [ ] Settings
 - [ ] Reports
 
+# Installation
+
+This library aims to be released on PyPI in the near future. However, until then you will need to install the library manually:
+
+```bash
+$ git clone git@github.com:4kmartin/pysnipeit.git
+$ cd pysnipeit
+$ pip install .
+```
 # Examples 
 
 to get a user by their ID:
