@@ -306,7 +306,7 @@ class SnipeItConnection:
             "Authorization": f"Bearer {personal_access_token}",
         }
 
-        self.url = f"{snipe_it_url[:-1] if snipe_it_url[-1] == '/' else snipe_it_url}/api/v1"
+        self.url = f"{snipe_it_url if snipe_it_url[-1] != "/" else snipe_it_url[:-1] }/api/v1"
 
         if validate:
             test = get(f"{self.url}/hardware?limit=1,", headers=self.headers).status_code
