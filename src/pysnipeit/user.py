@@ -31,11 +31,6 @@ def get_users(connection: SnipeItConnection,
               ) -> Result[List[SnipeItUser], str]:
     query = ["?"]
     url = "/users"
-    test = connection.get(f"{url}?limit=1")
-    if test.status_code != 200:
-        return Failure(f"status code: {test.status_code}")
-    number_of_users: int = test.json()["total"]
-    users: List[SnipeItUser] = []
     if fuzzy_search:
         query.append(f"search={fuzzy_search}")
     if first_name:
@@ -83,6 +78,11 @@ def get_users(connection: SnipeItConnection,
     if end_date:
         query.append(f"end_date={str(end_date)}")
     url += '&'.join(query) if len(query) > 1 else ''
+    test = connection.get(f"{url}?limit=1")
+    if test.status_code != 200:
+        return Failure(f"status code: {test.status_code}")
+    number_of_users: int = test.json()["total"]
+    users: List[SnipeItUser] = []
     if number_of_users > 50:
         offset = 0
         limit = 50

@@ -326,7 +326,6 @@ class SnipeItConnection:
 
     def get(self, api_endpoint: str) -> Response:
         url = self._api_url(api_endpoint)
-        print(url)
         return get(url, headers=self.headers)
 
     def paginated_request(self, api_endpoint: str, limit: int, offset: int) -> Response:
