@@ -172,9 +172,11 @@ def create_new_user(
 
     response = connection.post(url, payload)
     if response.status_code == 200:
+        if response.json()["status"] == "error":
+            return Failure(response.text)
         return Success(SnipeItUser.from_json(response.json()["payload"]))
     else:
-        return Failure(f"status code: {response.status_code}")
+        return Failure(f"status code: {response.status_code}\nresponse:{response.text}")
 
 
 def get_user_by_id(connection: SnipeItConnection, user_id: int) -> Result[SnipeItUser, str]:
@@ -211,3 +213,15 @@ def whoami(connection: SnipeItConnection) -> SnipeItUser:
     url = "/users/me"
     response = connection.get(url)
     return SnipeItUser.from_json(response.json())
+
+def get_user_id(connection: SnipeItConnection, first_name: str, last_name: str) -> Result[int,str]:
+    match get_users(connection, first_name=first_name,last_name=last_name):
+        case Failure(why):
+            return Failure(why)
+        case Success(user_list):
+            if len(user_list) == 0:
+                return Failure(f"could not find a user named: {first_name} {last_name}")
+            if len(user_list) > 1:
+                return Failure(f"Not enough information to identify a specific user: {first_name} {last_name}")
+            return Success(user_list[0].id)
+            
