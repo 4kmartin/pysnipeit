@@ -34,7 +34,10 @@ def get_asset_by_id(connection: SnipeItConnection, asset_id: int) -> Result[Snip
 def _asset_result(result: Response) -> Result[SnipeItAsset, str]:
     if result.status_code == 200:
         if "status" not in result.json():
-            return Success(SnipeItAsset.from_json(result.json()))
+            if result.json()["total"] == 1:
+                return Success(SnipeItAsset.from_json(result.json()["rows"][0]))
+            else:
+                return Failure(f"Query returns {result.json()['total']} assets. Expected 1")
         else:
             return Failure(result.json()["messages"])
     else:
@@ -201,3 +204,18 @@ def get_user_assets(connection: SnipeItConnection, user_id: int) -> Result[List[
         return Success(assets)
     else:
         return Failure(f"status code: {response.status_code}")
+
+
+def update_custom_field(connection: SnipeItConnection,
+                        asset_id: int, db_field_name: str,
+                        value: Any) -> Result[None, str]:
+    url = f"/hardware/{asset_id}"
+    payload = {
+        db_field_name: value
+    }
+
+    response = connection.patch(url, payload)
+    if response.status_code == 200 and response.json()["status"] == "success":
+        return Success(None)
+    else:
+        return Failure(f"status code: {response.status_code}\n{response.text}")

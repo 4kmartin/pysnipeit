@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from requests import get, Response, delete, put, post
+from requests import get, Response, delete, put, post, patch
 from typing import Any, Self, List
 from returns.result import Result, Success, Failure
 
@@ -52,20 +52,22 @@ class SnipeIt:
         # noinspection PyArgumentList
         return cls(**json.loads(json.dumps(json_data)))
 
-    def into_json(self) -> dict:
+    def into_json(self) -> str:
         return json.dumps(self.__dict__)
 
 
 class SnipeItAsset(SnipeIt):
 
     def __init__(self,
-                 asset_id: int,
+                 id: int,
                  name: str,
                  asset_tag: str,
                  serial: str,
                  model: str,
+                 byod: bool,
                  model_number: str,
                  eol: SnipeItDate,
+                 asset_eol_date: SnipeItDate,
                  status_label: str,
                  category: str,
                  manufacturer: str,
@@ -95,14 +97,16 @@ class SnipeItAsset(SnipeIt):
                  checkout_counter: int,
                  requests_counter: int,
                  user_can_checkout: bool,
+                 book_value: str,
                  custom_fields: dict[str, Any],
                  available_actions: dict[str, bool],
                  ) -> None:
-        self.id: int = asset_id
+        self.id: int = id
         self.name = name
         self.asset_tag = asset_tag
         self.serial = serial
         self.model = model
+        self.byod = byod
         self.model_number = model_number
         self.eol = eol
         self.status_label = status_label
@@ -306,7 +310,7 @@ class SnipeItConnection:
             "Authorization": f"Bearer {personal_access_token}",
         }
 
-        self.url = f"{snipe_it_url if snipe_it_url[-1] != '/' else snipe_it_url[:-1] }/api/v1"
+        self.url = f"{snipe_it_url if snipe_it_url[-1] != '/' else snipe_it_url[:-1]}/api/v1"
 
         if validate:
             test = get(f"{self.url}/hardware?limit=1,", headers=self.headers).status_code
@@ -343,6 +347,18 @@ class SnipeItConnection:
     def post(self, api_endpoint: str, payload: dict[Any]) -> Response:
         url = self._api_url(api_endpoint)
         return post(url, headers=self.headers, json=payload)
+
+    def patch(self, api_endpoint: str, payload: dict[Any]) -> Response:
+        url = self._api_url(api_endpoint)
+        return patch(url, headers=self.headers, json=payload)
+
+
+class SnipeItFieldSet(SnipeIt):
+    pass
+
+
+class SnipeItField(SnipeIt):
+    pass
 
 
 def return_none_from_response(response: Response) -> Result[None, str]:
