@@ -219,3 +219,70 @@ def update_custom_field(connection: SnipeItConnection,
         return Success(None)
     else:
         return Failure(f"status code: {response.status_code}\n{response.text}")
+
+
+def create_new_asset( 
+                    connection: SnipeItConnection, 
+                    asset_tag: Optional[str], # if auto_incement is on then this can be set to None otherwise it *must* have a value
+                    status_id: int, 
+                    model_id: int, 
+                    name: Optional[str] = None, 
+                    image: Optional[str] = None, 
+                    serial: Optional[str] = None, 
+                    purchase_date: Optional[SnipeItDate] = None,
+                    purchase_cost: Optional[float] = None,
+                    order_number: Optional[str] = None,
+                    notes: Optional[str] = None,
+                    archived: Optional[str] = None,
+                    warranty_months: Optional[int] = None,
+                    depreciate: bool = False,
+                    supplier_id: Optional[int] = None,
+                    requestable: bool = False,
+                    rtd_location_id: Optional[int] = None, # The corresponding location_id from a location in the locations table that should indicate where the item is when it's *NOT* checked out to someone
+                    last_audit_date: Optional[SnipeItDate] = None,
+                    location_id: Optional[int] = None,
+                    byod: bool = False
+                    ) -> Result[SnipeItAsset,str]:
+    payload = {
+        "status_id": status_id,
+        "model_id": model_id,
+    }
+    if asset_tag:
+        payload["asset_tag"] = asset_tag
+    if name:
+        payload["name"] = name
+    if image:
+        payload["image"] = image
+    if serial:
+        payload["serial"] = serial
+    if purchase_date:
+        payload["purchase_date"] = purchase_date
+    if purchase_cost:
+        payload["purchase_cost"] = purchase_cost
+    if order_number:
+        payload["order_number"] = order_number
+    if notes:
+        payload["notes"] = notes
+    if archived:
+        payload["archived"] = archived
+    if warranty_months:
+        payload["warranty_months"] = warranty_months
+    if depreciate:
+        payload["depreciate"] = depreciate
+    if supplier_id:
+        payload["supplier_id"] = supplier_id
+    if requestable:
+        payload["requestable"] = requestable
+    if rtd_location_id:
+        payload["rtd_location_id"] = rtd_location_id
+    if last_audit_date:
+        payload["last_audit_date"] = last_audit_date
+    if location_id:
+        payload["location_id"] = location_id
+    if byod:
+        payload["byod"]
+    resposnse = connection.post("/hardware", payload)
+    if resposnse.json()["status"] == "success":
+        return Success(SnipeItAsset.from_json(resposnse.json["payload"]))
+    else:
+        return Failure(f"response: {resposnse.status_code}\nreason: {resposnse.json()["status"]}")
