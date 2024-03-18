@@ -285,4 +285,4 @@ def create_new_asset(
     if resposnse.json()["status"] == "success":
         return Success(SnipeItAsset.from_json(resposnse.json["payload"]))
     else:
-        return Failure(f"response: {resposnse.status_code}\nreason: {resposnse.json()["status"]}")
+        return Failure(f"response: {resposnse.status_code}\nreason: {resposnse.json()['status']}")
