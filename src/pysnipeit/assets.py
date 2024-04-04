@@ -7,11 +7,42 @@ from .Classes import SnipeItAsset, SnipeItConnection, SnipeItDate
 
 
 # Start Asset API Functions
-def get_all_assets(connection: SnipeItConnection) -> List[SnipeItAsset]:
+def get_all_assets(connection: SnipeItConnection,
+                  search: Optional[str] = None,
+                  order_number: Optional[str] = None,
+                  sort: str = "id",
+                  order: str = "asc",
+                  model_id: Optional[int] = None,
+                  category_id: Optional[int] = None,
+                  manufacturer_id: Optional[int] = None,
+                  company_id: Optional[int] = None,
+                  location_id: Optional[int] = None,
+                  status: Optional[str] = None,
+                  status_id: Optional[str] = None,
+                  ) -> List[SnipeItAsset]:
     assets: List[SnipeItAsset] = []
     rows: List[dict[str, Any]] = []
+    url = f"/hardware?sort={sort}&order={order}"
+    if search:
+        url += f"&search={search}"
+    if oreder_number:
+        url += f"&order_number={order_number}"
+    if model_id:
+        url += f"&model_id={model_id}"
+    if category_id:
+        url += f"&category_id={category_id}"
+    if manufacturer_id:
+        url += f"&manufacturer_id={manufacturer_id}"
+    if company_id:
+        url += f"&company_id={company_id}"
+    if location_id:
+        url += f"&location_id={location_id}"
+    if status:
+        url += f"&status={status}"
+    if status_id:
+        url += f"&status_id={status_id}"
     # get total number of assets:
-    number_of_assets: int = connection.get("/hardware?limit=1").json()["total"]
+    number_of_assets: int = connection.get(url + "&limit=1").json()["total"]
     if number_of_assets > 50:
         offset = 0
         limit = 50
