@@ -80,7 +80,7 @@ def get_users(connection: SnipeItConnection,
     url += '&'.join(query) if len(query) > 1 else ''
     test = connection.get(f"{url}?limit=1")
     if test.status_code != 200:
-        return Failure(f"status code: {test.status_code}")
+        return Failure(test.json())
     number_of_users: int = test.json()["total"]
     users: List[SnipeItUser] = []
     if number_of_users > 50:
@@ -176,7 +176,7 @@ def create_new_user(
             return Failure(response.text)
         return Success(SnipeItUser.from_json(response.json()["payload"]))
     else:
-        return Failure(f"status code: {response.status_code}\nresponse:{response.text}")
+        return Failure({"user_name":username, "response": response.json()})
 
 
 def get_user_by_id(connection: SnipeItConnection, user_id: int) -> Result[SnipeItUser, str]:

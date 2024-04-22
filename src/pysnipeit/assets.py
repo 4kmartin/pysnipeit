@@ -25,7 +25,7 @@ def get_all_assets(connection: SnipeItConnection,
     url = f"/hardware?sort={sort}&order={order}"
     if search:
         url += f"&search={search}"
-    if oreder_number:
+    if order_number:
         url += f"&order_number={order_number}"
     if model_id:
         url += f"&model_id={model_id}"
@@ -47,11 +47,11 @@ def get_all_assets(connection: SnipeItConnection,
         offset = 0
         limit = 50
         while offset < number_of_assets:
-            response = connection.paginated_request("/hardware", limit, offset)
+            response = connection.paginated_request(url, limit, offset)
             rows += response.json()["rows"]
             offset += limit
     else:
-        rows += connection.get(f"{connection.url}/hardware").json()["rows"]
+        rows += connection.get(url).json()["rows"]
     for json_asset in rows:
         assets.append(SnipeItAsset.from_json(json_asset))
     return assets

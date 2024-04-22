@@ -65,6 +65,7 @@ class SnipeItAsset(SnipeIt):
                  serial: str,
                  model: str,
                  byod: bool,
+                 book_value: str,
                  model_number: str,
                  eol: SnipeItDate,
                  asset_eol_date: SnipeItDate,
@@ -89,17 +90,18 @@ class SnipeItAsset(SnipeIt):
                  next_audit_date: SnipeItDate,
                  deleted_at: SnipeItDate,
                  purchase_date: SnipeItDate,
-                 age: int,
+                 age: str,
                  last_checkout: SnipeItDate,
+                 last_checkin: SnipeItDate,
                  expected_checkin: SnipeItDate,
-                 purchase_cost: int,
+                 purchase_cost: str,
                  checkin_counter: int,
                  checkout_counter: int,
                  requests_counter: int,
                  user_can_checkout: bool,
-                 book_value: str,
                  custom_fields: dict[str, Any],
                  available_actions: dict[str, bool],
+                 requestable: bool,
                  ) -> None:
         self.id: int = id
         self.name = name
@@ -303,7 +305,7 @@ class SnipeItConnection:
         self.headers = {}
         self.url = ""
 
-    def connect(self, snipe_it_url: str, personal_access_token: str, validate: bool = False) -> None:
+    def connect(self, snipe_it_url: str, personal_access_token: str, validate: bool = False) -> Result:
         self.headers = {
             "Accept": "application/json",
             "Content-type": "application/json",
@@ -313,15 +315,14 @@ class SnipeItConnection:
         self.url = f"{snipe_it_url if snipe_it_url[-1] != '/' else snipe_it_url[:-1]}/api/v1"
 
         if validate:
-            test = get(f"{self.url}/hardware?limit=1,", headers=self.headers).status_code
+            test_result = get(f"{self.url}/hardware?limit=1,", headers=self.headers)
+            test = test_result.status_code
             if test == 200:
-                print("connection successful")
-            elif test == 401:
-                print("An Error has Occurred! Unauthenticated")
-                quit()
+                Success("connection successful")
             else:
-                print(f"Connection failed for unknown reasons.\nstatus code: {test}\nAborting.")
-                quit()
+                Failure(test_result)
+        else:
+            Success("no validation occured")
 
     def _api_url(self, api_endpoint: str) -> str:
         if api_endpoint[0] != '/':
