@@ -173,7 +173,7 @@ def create_new_user(
     response = connection.post(url, payload)
     if response.status_code == 200:
         if response.json()["status"] == "error":
-            return Failure(response.text)
+            return Failure(response.json())
         return Success(SnipeItUser.from_json(response.json()["payload"]))
     else:
         return Failure({"user_name":username, "response": response.json()})
