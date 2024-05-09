@@ -3,7 +3,13 @@ pySnipeIt is a wrapper for [Snipe-It](https://snipeitapp.com/)'s REST API. It ai
 
 # Installation
 
-This library aims to be released on PyPI in the near future. However, until then you will need to install the library manually:
+This library is available on PyPi. To install:
+
+```bash
+$ pip install pysnipeit
+    
+```
+to install from source:
 
 ```bash
 $ git clone git@github.com:4kmartin/pysnipeit.git
