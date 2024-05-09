@@ -1,26 +1,5 @@
 pySnipeIt is a wrapper for [Snipe-It](https://snipeitapp.com/)'s REST API. It aims to have 1:1 compatibility with that api.
 
-# Implementation Progress
-
-- [x] Assets
-- [ ] Custom Fields and Fieldsets
-- [ ] Companies
-- [ ] Locations
-- [ ] Accessories
-- [ ] Consumables
-- [ ] Components
-- [x] Users
-- [ ] Status Labels
-- [ ] Models
-- [ ] Licenses
-- [ ] Categories
-- [ ] Manufacturers
-- [ ] Suppliers
-- [ ] Asset Maintenances
-- [ ] Departments
-- [ ] Groups
-- [ ] Settings
-- [ ] Reports
 
 # Installation
 
