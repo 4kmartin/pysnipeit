@@ -180,6 +180,8 @@ class SnipeItUser(SnipeIt):
                  licenses_count: int,
                  accessories_count: int,
                  consumables_count: int,
+                 manages_users_count: int,
+                 manages_locations_count: int,
                  company: SnipeItCompany,
                  created_by: SnipeItUser,
                  created_at: SnipeItDate,
@@ -224,6 +226,8 @@ class SnipeItUser(SnipeIt):
         self.license_count = licenses_count
         self.accessories_count = accessories_count
         self.consumables_count = consumables_count
+        self.manages_users_count = manages_users_count
+        self.manages_locations_count = manages_locations_count
         self.company = company
         self.created_by = created_by
         self.created_at = created_at
