@@ -93,7 +93,10 @@ def get_users(connection: SnipeItConnection,
     else:
         rows = connection.get(url).json()["rows"]
     for row in rows:
-        users.append(SnipeItUser.from_json(row))
+        try:
+            users.append(SnipeItUser.from_json(row))
+        except TypeError:
+            return Failure(f"Got an unexpected value from user json:\n {row}")
     return Success(users)
 
 
